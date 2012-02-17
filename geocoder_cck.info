@@ -1,0 +1,7 @@
+name = Geocoder CCK
+description = Provides a geocoder field.
+core = 6.x
+package = Whami
+
+dependencies[] = mapstraction_cck_geocoder
+dependencies[] = text

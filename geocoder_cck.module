@@ -1,0 +1,127 @@
+<?php 
+
+/**
+*
+* @file
+* This file holds the hooks and main functions for the geocoder_cck module.
+*
+* @author Pablo López (plopesc)
+* @ingroup Whami
+*/
+
+/**
+ * Implements hook_menu()
+ */
+function geocoder_cck_menu() {
+  $items['geocoder_cck/ajax/%/%'] = array(
+    'access arguments' => array('access content'),
+    'page callback' => 'geocoder_cck_ajax',
+    'page arguments' => array(2,3),
+    'type' => MENU_CALLBACK,
+  );
+  
+  return $items;
+}
+
+function geocoder_cck_ajax($hook, $value) {
+  $geocoder_value = module_invoke_all($hook, $value);
+  if (count($geocoder_value)) {
+    print $geocoder_value[0];
+  }
+  else{
+    print $value;
+  }
+  die();
+}
+
+function geocoder_cck_elements() {
+  return array(
+    'geocoder_textfield' => array(
+    '#input' => TRUE,
+    '#columns' => array('value'), '#delta' => 0,
+    '#process' => array('geocoder_textfield_process'),
+    '#autocomplete_path' => FALSE,
+    )
+  );
+}
+
+function geocoder_textfield_process($element, $edit, $form_state, $form){
+  $default_value = module_invoke_all($element['#default_hook']);
+  drupal_add_js(drupal_get_path('module', 'geocoder_cck') . '/geocoder_cck.js');
+  
+  if(isset($element['#field_name'])){
+    $field = $form['#field_info'][$element['#field_name']];
+    $field_properties = array(
+    // The following values were set by the content module and need
+    // to be passed down to the nested element.
+        '#required' => $element['#required'],
+        '#field_name' => $element['#field_name'],
+        '#type_name' => $element['#type_name'],
+        '#delta' => $element['#delta'],
+        '#columns' => $element['#columns'],
+    );
+  }
+  
+  $field_key = $element['#columns'][0];
+  $element[$field_key] = array(
+    '#type' => 'textfield',
+  	'#title' => $element['#title'], 
+    '#description' => $element['#description'],
+    '#default_value' => (isset($element['#value'][$field_key])) ? $element['#value'][$field_key] : (isset($default_value[0]) ? $default_value[0] : NULL),
+    '#autocomplete_path' => 'mapstraction_cck/geocoder',
+    '#size' => !empty($field['widget']['size']) ? $field['widget']['size'] : !(empty($element['#size'])) ? $element['#size'] : 60,
+    '#attributes' => array(
+      'geocoder-textfield-autocomplete' => TRUE,
+      'class' => 'text geocoder-field geocoder-textfield',
+      'callback' => isset($element['#process_hook']) ? $element['#process_hook'] : '',
+    ),
+  );
+  if (isset($field_properties)) {
+    $element[$field_key] += $field_properties;
+  }
+  return $element;
+}
+
+function geocoder_cck_theme() {
+  return array(
+    'geocoder_textfield' => array(
+      'arguments' => array('element' => NULL),
+    ),
+  );
+}
+
+function theme_geocoder_textfield($element) {
+  return $element['#children'];
+}
+
+
+function geocoder_cck_widget_info() {
+  return array(
+  	'geocoder_textfield' => array(
+      'label' => t('Geocoder field'),
+      'field types' => array('text'),
+      'multiple values' => CONTENT_HANDLE_CORE,
+      'callbacks' => array(
+        'default value' => CONTENT_CALLBACK_DEFAULT,
+      ),
+    ),
+  );
+}
+
+function geocoder_cck_widget(&$form, &$form_state, $field, $items, $delta = 0) {
+  $element = array(
+    '#type' => $field['widget']['type'],
+    '#default_value' => isset($items[$delta]) ? $items[$delta] : '',
+  	'#default_hook' => 'geocoder_cck_default',
+  	'#process_hook' => 'geocoder_cck_process',
+  );
+  return $element;
+}
+
+function geocoder_block_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'content_field_edit_form' && $form['widget_module']['#value'] == 'geocoder_cck'){
+    unset($form['widget']['default_value']);
+    unset($form['widget']['default_value_php']);
+    unset($form['widget']['default_value_fieldset']);
+  }
+}

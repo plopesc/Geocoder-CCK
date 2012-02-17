@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * @file
+ * This file holds the functions for the installing
+ * and enabling of the geocoder_cck module.
+ *
+ * @author Pablo López (plopesc)
+ * @ingroup Whami
+ */
+ 
+/**
+ * Implementation of hook_enable().
+ */
+function geocoder_cck_enable() {
+  // Let content/cck know about our actions
+  drupal_load('module', 'content');
+  content_notify('enable', 'geocoder_cck');
+}
+ 
+/**
+ * Implementation of hook_disable().
+ */
+function geocoder_cck_disable() {
+  // Let content/cck know about our actions
+  drupal_load('module', 'content');
+  content_notify('disable', 'geocoder_cck');
+}
+ 
+/**
+ * Implementation of hook_install().
+ */
+function geocoder_cck_install() {
+  // Let content/cck know about our actions
+  drupal_load('module', 'content');
+  content_notify('install', 'geocoder_cck');
+}
+ 
+/**
+ * Implementation of hook_uninstall().
+ */
+function geocoder_cck_uninstall() {
+  // Let content/cck know about our actions
+  drupal_load('module', 'content');
+  content_notify('uninstall', 'geocoder_cck');
+}
